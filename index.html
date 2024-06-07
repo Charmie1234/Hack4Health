@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hach4Health</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('c:\\Users\\user\\Desktop\\images.jfif') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chatbot-container {
+            background: rgba(0, 0, 255, 0.6); /* Blue overlay with some transparency */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: white;
+        }
+        .chat-log {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .chat-log p {
+            margin: 10px 0;
+        }
+        .user-message {
+            color: blue;
+            text-align: right;
+        }
+        .bot-message {
+            color: green;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <h1>Hack4Health Chatbot</h1>
+        <div class="chat-log" id="chat-log">
+            <p class="bot-message">Hi! I'm Hola. Tell me your disease, and I'll suggest medications!</p>
+        </div>
+        <form id="chat-form">
+            <input type="text" id="user-input" autocomplete="off" placeholder="Type your message...">
+            <input type="submit" value="Send">
+        </form>
+    </div>
+
+    <script>
+        const medicationSuggestions = {
+            'fungal infection': 'Antifungal medications like clotrimazole, fluconazole, and terbinafine',
+            'allergy': 'Antihistamines, decongestants, nasal corticosteroids',
+            'gerd': 'Antacids, H2 receptor blockers, proton pump inhibitors',
+            'chronic cholestasis': 'Ursodeoxycholic acid, cholestyramine, dietary changes',
+            'drug reaction': 'Discontinuation of the drug, antihistamines, corticosteroids',
+            'peptic ulcer disease': 'Proton pump inhibitors, H2 receptor blockers, antibiotics if H. pylori is present',
+            'aids': 'Antiretroviral therapy (ART)',
+            'diabetes': 'Insulin, metformin, lifestyle changes',
+            'gastroenteritis': 'Hydration, rest, antidiarrheal medications',
+            'bronchial asthma': 'Inhalers (e.g., albuterol), corticosteroids',
+            'hypertension': 'ACE inhibitors, beta-blockers, lifestyle changes',
+            'migraine': 'Triptans, NSAIDs, anti-nausea medications',
+            'cervical spondylosis': 'Pain relievers, physical therapy, cervical collar',
+            'paralysis (brain hemorrhage)': 'Emergency medical treatment, rehabilitation, physical therapy',
+            'jaundice': 'Treatment of underlying cause, rest, hydration',
+            'malaria': 'Antimalarial drugs like chloroquine, artemisinin-based combination therapies',
+            'chicken pox': 'Antiviral medications, antihistamines, calamine lotion',
+            'dengue': 'Supportive care, hydration, pain relievers',
+            'typhoid': 'Antibiotics, hydration, rest',
+            'hepatitis a': 'Rest, hydration, supportive care',
+            'hepatitis b': 'Antiviral medications, interferons',
+            'hepatitis c': 'Antiviral medications like direct-acting antivirals (DAAs)',
+            'hepatitis d': 'Interferon alpha, antiviral medications',
+            'hepatitis e': 'Rest, hydration, supportive care',
+            'alcoholic hepatitis': 'Abstinence from alcohol, corticosteroids, nutritional support',
+            'tuberculosis': 'Antibiotics like isoniazid, rifampin, ethambutol, and pyrazinamide',
+            'common cold': 'Rest, hydration, over-the-counter cold remedies',
+            'pneumonia': 'Antibiotics for bacterial pneumonia, rest, hydration',
+            'dimorphic hemorrhoids(piles)': 'Over-the-counter creams, dietary changes, surgical treatment if severe',
+            'heart attack': 'Emergency medical treatment, aspirin, nitroglycerin, angioplasty',
+            'varicose veins': 'Compression stockings, sclerotherapy, laser surgery',
+            'hypothyroidism': 'Levothyroxine',
+            'hyperthyroidism': 'Antithyroid medications, radioactive iodine, beta-blockers',
+            'hypoglycemia': 'Glucose tablets, sugary foods or drinks, glucagon injection if severe',
+            'osteoarthritis': 'Pain relievers, physical therapy, joint replacement surgery if severe',
+            'arthritis': 'NSAIDs, corticosteroids, physical therapy',
+            '(vertigo) paroymsal positional vertigo': 'Epley maneuver, vestibular rehabilitation',
+            'acne': 'Topical treatments, antibiotics, retinoids',
+            'urinary tract infection': 'Antibiotics, hydration',
+            'psoriasis': 'Topical treatments, phototherapy, systemic medications',
+            'impetigo': 'Antibiotics, topical antiseptics'
+        };
+
+        const chatLog = document.getElementById('chat-log');
+        const userInput = document.getElementById('user-input');
+
+        function addChatMessage(message, sender) {
+            const messageElement = document.createElement('p');
+            messageElement.className = sender === 'user' ? 'user-message' : 'bot-message';
+            messageElement.textContent = message;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+        }
+
+        document.getElementById('chat-form').onsubmit = function(event) {
+            event.preventDefault();
+
+            const input = userInput.value.toLowerCase().trim();
+            if (!input) return;
+
+            addChatMessage(input, 'user');
+            userInput.value = ''; // Clear input field
+
+            handleUserMessage(input);
+        };
+
+        function handleUserMessage(input) {
+            let botResponse = 'Sorry, I do not have information on that disease.';
+
+            if (medicationSuggestions[input]) {
+                botResponse = `${input.charAt(0).toUpperCase() + input.slice(1)}: ${medicationSuggestions[input]}`;
+            } else if (input.includes('weight') || input.includes('blood sugar') || input.includes('medicine') || input.includes('food log')) {
+                botResponse = 'Please enter your details in the format: "weight 70kg", "blood sugar 120mg/dL", "medicine Metformin 500mg", "food log Breakfast: Oatmeal".';
+            } else if (input.match(/weight \d+kg/)) {
+                botResponse = `Weight entry recorded: ${input.split(' ')[1]}`;
+            } else if (input.match(/blood sugar \d+mg\/dL/)) {
+                botResponse = `Blood sugar level recorded: ${input.split(' ')[2]}`;
+            } else if (input.match(/medicine .+/)) {
+                botResponse = `Medicine entry recorded: ${input.split(' ')[1]}`;
+            } else if (input.match(/food log .+/)) {
+                botResponse = `Food log entry recorded: ${input.slice(9)}`;
+            } else if (input.match(/CGM reading \d+mg\/dL/)) {
+                botResponse = `CGM reading recorded: ${input.split(' ')[3]}`;
+            } else {
+                botResponse = 'Sorry, I did not understand that. Please try again.';
+            }
+
+            addChatMessage(botResponse, 'bot');
+        }
+    </script>
+</body>
+</html>
+
+
